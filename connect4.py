@@ -1,9 +1,4 @@
 import random
-from Tkinter import *
-
-diameter = 50
-spacing = 10
-gutter = 50
 
 class Board:
 
@@ -41,9 +36,8 @@ class Board:
             for row in range (self.height):
                 if self.data[row][col] != ' ':
                     self.data[row-1][col] = ox
-                    return row-1
+                    return
             self.data[self.height-1][col] = ox
-            return self.height-1
     
     def clear(self):      
         for row in range( self.height ):
@@ -160,102 +154,6 @@ class Board:
                 print ("Game is a tie.")
                 break 
             
-    def quitGame(self):
-        self.window.destroy()
-        
-    def postMessage(self,newText):
-        if self.message != None:
-            self.draw.delete(self.message)
-        self.message = self.draw.create_text(diameter/2, \
-                                             self.gutter + diameter/2, \
-                                text=newText,anchor="w", font = "Courier 18")
-        self.window.update()
-        
-    def gui(self,row,col,color):
-        c = self.circles[row][col]
-        self.draw.itemconfig(c,fill=color)
-        
-    def mouse(self,event):
-        if self.ignoreEvents:
-            self.window.bell()
-            return
-        print(event.x, " ", event.y)
-        col = (event.x - spacing/2) / (diameter + spacing)
-        if self.allowsMove(col):
-            row = self.addMove(col,'X')
-            self.gui(row,col,"blue")
-            if self.winsFour('X'):
-                self.postMessage("You win!")
-                self.ignoreEvents = True
-                return
-            elif self.ifFull():
-                self.postMessage("Tie")
-                self.ignoreEvents = True
-                return
-            self.postMessage("Thinking...")
-            col = self.player.nextMove(self)
-            row = self.addMove(col,"O")
-            self.gui(row,col,"black")
-            if self.winsFour('O'):
-                self.postMessage("You lose!")
-                self.ignoreEvents = True
-                return
-            elif self.ifFull():
-                self.postMessage("Tie")
-                self.ignoreEvents = True
-                return
-            self.postMessage("")
-            self.ignoreEvents = False
-        else:
-            self.window.bell()
-            return
-    
-        
-    def newGame(self):
-        for row in range (self.height):
-            for col in range(self.width):
-                self.data[row][col] = ' '
-                self.gui(row,col,"white")
-                self.ignoreEvents = False
-        return
-    
-    def attachGUI(self,window,player):
-        self.ignoreEvents = True
-        self.player = player
-        self.window = window
-        self.frame = Frame(window)
-        self.message = None
-        self.frame.pack()
-        self.qButton = Button(self.frame,text="Quit",fg="blue", \
-                              command=self.quitGame)
-        self.qButton.pack(side=RIGHT)
-        self.newButton = Button(self.frame,text="New Game",fg="green", \
-                                command=self.newGame)
-        self.newButton.pack(side=LEFT)
-        w = self.width * (diameter + spacing) + spacing
-        h = self.height * (diameter + spacing) + spacing + gutter
-        self.draw = Canvas(window, width = w, height = h, bg="pink",borderwidth=0, \
-                           highlightbackground="black",highlightthickness=2)
-        self.draw.bind("<Button-1>",self.mouse)
-        self.draw.bind("<Button-1>",self.mouse)
-        self.draw.pack()
-        self.circles = []
-        delta = diameter + spacing
-        y = spacing
-        for row in range(self.height):
-            boardRow = []
-            x = spacing #+ (diameter/2)
-            for col in range(self.width):
-                c = self.draw.create_oval(x, y, x+diameter, y+diameter, \
-                                          fill="white")
-                boardRow += [c]
-                x += delta
-            self.circles += [boardRow]
-            y += delta
-        self.gutter = y
-        self.postMessage("Make your move.")
-        self.ignoreEvents = False
-            
     def playGameWith(self, aiPlayer):
         print (self)
         print ("please input a valid number of column")
@@ -284,18 +182,18 @@ class Player:
             
     def nextMove(self,board):
         scores = self.scoresFor(board,self.checker,self.ply)
+        #board.allowsMove(scores)
         best = max(scores)
-        print scores
-        for col in range(board.width):
-            if best == scores[col]:
-                return col
-        #bestmoves = []
-        #for m in scores:
-         #   if m[0] == best[0]:
-          #      bestmoves += [m]
-        #moves = random.choice(bestmoves)
-        #print (moves,bestmoves)
-        #return moves[1]
+        #for col in range(board.width):
+         #   if best == scores[col]:
+          #      return col
+        bestmoves = []
+        for m in scores:
+            if m[0] == best[0]:
+                bestmoves += [m]
+        moves = random.choice(bestmoves)
+        print moves,bestmoves
+        return moves[1]
             
     def scoresFor(self,board,ox,depth):
         scoresList = []
@@ -319,22 +217,7 @@ class Player:
             else:
                 scoresList += [-1.0]
         return scoresList      
-    
-def playText(size):
-    b = Board(6.7)
-    p = Player('0', 3)
-    b.hostGame()
         
-def playGUI(size,ply):
-    b = Board(6,7)
-    p=Player('0',ply)
-    window = Tk()
-    window.title("Connect Four")
-    b.attachGUI(window, p)
-    window.mainloop()
-    
-#b = Board(7,6)
-#aiPlayer = Player('O', 3)
-#b.playGameWith(aiPlayer)
-#playText(4)
-playGUI(6,3)      
+b = Board(7,6)
+aiPlayer = Player('O', 3)
+b.playGameWith(aiPlayer)
